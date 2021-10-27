@@ -9,12 +9,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @ClassName: GlobalExceptionAdvice
@@ -31,6 +37,7 @@ public class GlobalExceptionAdvice {
      */
     @Autowired
     private ExceptionCodeConfiguration exceptionCodes;
+
     /**
      * 全局处理异常 处理任意类型异常
      *
@@ -40,7 +47,7 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR) // 500
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public UnifyResponse handleException(HttpServletRequest req, Exception e) {
         // 未知异常的code统一为9999
         String url = req.getRequestURI();
@@ -64,7 +71,8 @@ public class GlobalExceptionAdvice {
         String url = req.getRequestURI();
         // 请求方式
         String method = req.getMethod();
-        UnifyResponse message = new UnifyResponse(httpException.getCode(), exceptionCodes.getMessage(httpException.getCode()), method + " " + url);
+        // 错误请求的消息
+        UnifyResponse response = new UnifyResponse(httpException.getCode(), exceptionCodes.getMessage(httpException.getCode()), method + " " + url);
         // 响应头
         HttpHeaders httpHeaders = new HttpHeaders();
         // 设置响应头
@@ -72,6 +80,57 @@ public class GlobalExceptionAdvice {
         // http状态码
         HttpStatus httpStatus = HttpStatus.resolve(httpException.getHttpStatusCode());
         assert httpStatus != null;
-        return new ResponseEntity<>(message, httpHeaders, httpStatus);
+        return new ResponseEntity<>(response, httpHeaders, httpStatus);
+    }
+
+    /**
+     * 参数校验异常 读取错误消息提示 返回给前端
+     * 设置http状态码为错误请求状态码
+     * MethodArgumentNotValidException 参数校验失败的异常
+     *
+     * @return
+     */
+    @ExceptionHandler({MethodArgumentNotValidException.class})
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public UnifyResponse handleBeanValidation(HttpServletRequest req, MethodArgumentNotValidException exception) {
+        // 未知异常的code统一为9999
+        String url = req.getRequestURI();
+        // 请求方式
+        String method = req.getMethod();
+        // 获取校验不通过的所有错误
+        List<ObjectError> errors = exception.getBindingResult().getAllErrors();
+        String message = formatAllErrorMessages(errors);
+        return new UnifyResponse(10001, message, method + " " + url);
+    }
+
+    /**
+     * @param req
+     * @param constraintViolationException 路径参数校验失败的异常
+     * @return
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public UnifyResponse handleConstraintException(HttpServletRequest req, ConstraintViolationException constraintViolationException) {
+        // 未知异常的code统一为9999
+        String url = req.getRequestURI();
+        // 请求方式
+        String method = req.getMethod();
+        // 错误提示 所有的错误提示都进行了拼接好了
+        String message = constraintViolationException.getMessage();
+        return new UnifyResponse(10001, message, method + " " + url);
+    }
+
+    /**
+     * 拼接错误消息
+     *
+     * @param errors
+     * @return
+     */
+    private String formatAllErrorMessages(List<ObjectError> errors) {
+        StringBuffer errorMessage = new StringBuffer();
+        errors.forEach(error -> errorMessage.append(error.getDefaultMessage()).append(";"));
+        return errorMessage.toString();
     }
 }
