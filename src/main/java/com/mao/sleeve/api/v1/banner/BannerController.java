@@ -1,5 +1,8 @@
 package com.mao.sleeve.api.v1.banner;
 
+import com.mao.sleeve.model.Banner;
+import com.mao.sleeve.service.banner.BannerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,8 +18,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Validated
 public class BannerController {
-    @GetMapping("/test")
-    public String test() {
-        return "毛毛！";
+    @Autowired
+    private BannerService bannerService;
+
+    /**
+     * 根据 名称 获取banner
+     *
+     * @param name
+     */
+    @GetMapping("/name/{name}")
+    public Banner getByName(@PathVariable String name) {
+        Banner banner = bannerService.getByName(name);
+        return banner;
     }
 }

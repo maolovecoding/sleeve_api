@@ -1,0 +1,16 @@
+# 开发环境
+server:
+  port: 8888
+
+
+spring:
+  datasource:
+    url: jdbc:mysql:///sleeve
+    username: root
+    password: 826427
+  # 配置jpa 打印sql到控制台
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true

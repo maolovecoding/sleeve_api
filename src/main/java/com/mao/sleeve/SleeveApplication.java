@@ -12,7 +12,7 @@ import org.springframework.context.annotation.PropertySource;
  * @Version: v1.0
  */
 @SpringBootApplication
-@PropertySource("classpath:application.properties")
+//@PropertySource("classpath:application.properties")
 public class SleeveApplication {
 
     public static void main(String[] args) {

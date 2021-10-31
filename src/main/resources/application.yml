@@ -1,0 +1,15 @@
+# 指定我们api的根目录
+sleeve:
+  api-package: com.mao.sleeve.api
+  # 开启多环境
+spring:
+  profiles:
+    # 激活开发环境
+    active: dev
+    # 配置jpa
+  jpa:
+    hibernate:
+      # 表存在的情况下， update 不会删除已存在的表 只会创建还没存在的表
+      # DDL 数据定义语言
+      ddl-auto: none
+
