@@ -1,36 +1,65 @@
 package com.mao.sleeve.model;
 
+
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
 /**
  * @ClassName: Spu
- * @Description: 商品
+ * @Description: sku模型类
  * @Author 毛毛
- * @CreateDate 2021/10/30/周六 15:05
+ * @CreateDate 2021/11/01/周一 18:15
  * @Version: v1.0
  */
 @Entity
-@Table(name = "spu")
-public class Spu {
+@Setter
+@Getter
+public class Spu extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    /**
-     * 主标题
-     */
     private String title;
+    private String subtitle;
     /**
-     * 副标题
+     * 所属的商品类别id
      */
-    private String subTitle;
+    private Long categoryId;
     /**
-     * 关系被维护端
-     * 忽略物理外键
+     * 根商品类别 因为可能出现多级商品分类 这个字段是为了记录一级的分类id
      */
-    @ManyToMany(mappedBy = "spuList")
-    //@org.hibernate.annotations.ForeignKey(name = "null")
-    // 上面是被废弃的方式，下面的方式是新增的，也是用来禁止生成物理外键的，设置模式是无限制
-    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private List<Theme> themeList;
+    private Long rootCategoryId;
+    private Boolean online;
+    private String price;
+    /**
+     * 可视规格值
+     */
+    private Long sketchSpecId;
+    /**
+     * 默认的sku规格值
+     */
+    private Long defaultSkuId;
+    private String img;
+    private String discountPrice;
+    private String description;
+    private String tags;
+    private Boolean isTest;
+    // 该字段对应数据库中的json数据类型 spu主题图片 实际上没用上该字段
+    //private Object spuThemeImg;
+    private String forThemeImg;
+
+    /**
+     * 配置导航关系
+     * 单向一对多 必须要有@JoinColumn注解 且name属性是多方外键的名称
+     */
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "spuId")
+    private List<Sku> skuList;
+    @OneToMany
+    @JoinColumn(name = "spuId")
+    private List<SpuImg> spuImgList;
+    @OneToMany
+    @JoinColumn(name = "spuId")
+    private List<SpuDetailImg> spuDetailImgList;
 }

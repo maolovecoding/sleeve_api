@@ -1,4 +1,4 @@
-package com.mao.sleeve.model;
+package com.mao.sleeve.model_bak;
 
 import org.hibernate.annotations.Proxy;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * @CreateDate 2021/10/30/周六 15:05
  * @Version: v1.0
  */
-@Entity
+//@Entity
 @Table(name = "theme")
 @Proxy(lazy = false)
 public class Theme {

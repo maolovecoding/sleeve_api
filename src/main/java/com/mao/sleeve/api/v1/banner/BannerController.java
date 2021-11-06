@@ -1,5 +1,6 @@
 package com.mao.sleeve.api.v1.banner;
 
+import com.mao.sleeve.exception.http.NotFoundException;
 import com.mao.sleeve.model.Banner;
 import com.mao.sleeve.service.banner.BannerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class BannerController {
     @GetMapping("/name/{name}")
     public Banner getByName(@PathVariable String name) {
         Banner banner = bannerService.getByName(name);
+        if (banner == null) {
+            throw new NotFoundException(30005);
+        }
         return banner;
     }
 }

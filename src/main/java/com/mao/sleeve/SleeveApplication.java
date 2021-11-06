@@ -2,7 +2,6 @@ package com.mao.sleeve;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
 
 /**
  * @ClassName: BannerController
@@ -12,7 +11,6 @@ import org.springframework.context.annotation.PropertySource;
  * @Version: v1.0
  */
 @SpringBootApplication
-//@PropertySource("classpath:application.properties")
 public class SleeveApplication {
 
     public static void main(String[] args) {

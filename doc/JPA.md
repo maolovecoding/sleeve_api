@@ -1,22 +1,98 @@
 # JPA框架
 
+## BO,VO,DTO,PO,POJO的区别
+
+**BO：**business object 业务对象
+
+> 业务对象主要作用是把业务逻辑封装为一个对象。这个对象可以包括一个或多个其它的对象。
+>
+>比如一个简历，有教育经历、工作经历、社会关系等等。我们可以把教育经历对应一个PO，工作经历对应一个PO，社会关系对应一个PO。
+>
+>建立一个对应简历的BO对象处理简历，每个BO包含这些PO。
+>
+>这样处理业务逻辑时，我们就可以针对BO去处理。
+>
+>封装业务逻辑为一个对象（可以包括多个PO，通常需要将BO转化成PO，才能进行数据的持久化，反之，从DB中得到的PO，需要转化成BO才能在业务层使用）。
+
+关于BO主要有三种概念
+
+1. 只包含业务对象的属性；
+
+2. 只包含业务方法；
+
+3. 两者都包含。
+
+**一般来说，业务对象是业务层进行使用，最后返回给controller层的对象。**
+
+在实际使用中，认为哪一种概念正确并不重要，关键是实际应用中适合自己项目的需要。
+
+****
 
 
 
+**VO：**value object 值对象 / view object 表现层对象
+
+1 ．主要对应页面显示（web页面/swt、swing界面）的数据对象。
+
+2 ．可以和表对应，也可以不，这根据业务的需要。
+
+**VO对象一般是我们返回给前端的对象，当然也是会进行JSON化的。VO对象的字段一般是比DAO对象的字段少**
+
+****
+
+**DTO（TO）：**Data Transfer Object 数据传输对象
+
+1. 用在需要跨进程或远程传输时，它不应该包含业务逻辑。
+
+2.
+
+比如一张表有100个字段，那么对应的PO就有100个属性（大多数情况下，DTO内的数据来自多个表）。但view层只需显示10个字段，没有必要把整个PO对象传递到client，这时我们就可以用只有这10个属性的DTO来传输数据到client，这样也不会暴露server端表结构。到达客户端以后，如果用这个对象来对应界面显示，那此时它的身份就转为VO。
+
+****
+
+**PO：**persistent object 持久对象
+
+1. 有时也被称为Data对象，对应数据库中的entity，可以简单认为一个PO对应数据库中的一条记录。
+
+2. 在hibernate持久化框架中与insert/delet操作密切相关。
+
+3. PO中不应该包含任何对数据库的操作。
+
+****
+
+**POJO ：**plain ordinary java object 无规则简单java对象
+
+一个中间对象，可以转化为PO、DTO、VO。
+
+1. POJO持久化之后==〉PO
+
+（在运行期，由Hibernate中的cglib动态把POJO转换为PO，PO相对于POJO会增加一些用来管理数据库entity状态的属性和方法。PO对于programmer来说完全透明，由于是运行期生成PO，所以可以支持增量编译，增量调试。）
+
+2. POJO传输过程中==〉DTO
+
+3. POJO用作表示层==〉VO
+
+**PO 和VO都应该属于它。**
+
+****
+
+**DAO：**data access object 数据访问对象
+
+1 ．主要用来封装对DB的访问（CRUD操作）。
+
+2 ．通过接收Business层的数据，把POJO持久化为PO。
+
+
+
+****
 
 ## 常用注解
 
-
-
 ### 实体类注解
-
-
 
 #### 实体注解 @Entity
 
 使用 `@Entity`注解标识在一个模型类（也可以说是实体类bean）上，表明当前类是一个数据库模型类了。
-
-
 
 #### 主键 @Id
 
@@ -40,7 +116,7 @@ private String name;
 如果我们想要让生成的表的表名不是我们的类型，我们可以使用该注解进行指定表名。需要指定表中字段的名称我们也可以通过@Id，@Column注解等的name属性进行指定。让我们模型类的属性名和生成的字段名不一致。
 
 ```java
-package com.mao.sleeve.model;
+package com.mao.sleeve.model_bak;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -78,23 +154,41 @@ public class Banner {
 
 ```
 
-
-
 #### @Transient 忽略属性
 
 使用该注解标记的属性，在创建表的时候，会忽略该属性，不和表的字段进行对应。也就是说模型类中有该属性，但是生成的表中不会有该字段。
 
+#### JSON序列化 @JsonIgnore 忽略该属性
 
+在进行json序列化返回给前端数据的时候，如果某些属性我们不想返回给前端，那么在序列化的时候，我们需要使用该注解@JsonIgnore标记在不被序列化的属性上。
+
+```java
+
+@Getter
+@Setter
+@MappedSuperclass
+public abstract class BaseEntity {
+    /**
+     * 三个基础字段 且这三个字段 不应该返回给前端 也就是不应该序列化
+     *
+     */
+    @JsonIgnore
+    protected Date createTime;
+    @JsonIgnore
+    protected Date updateTime;
+    @JsonIgnore
+    protected Date deleteTime;
+}
+```
 
 #### @OneToMany 一对多
 
 **使用该注解标记的属性，也叫做导航属性。**通过当前所在的模型类可以找到这个关联的多方的数据。
 
-
-
 该注解用来生成一对多的关系。一个banner对应多个bannerItem。表示两个表之间的关系是一对多。当前所在模型是一，标记的BannerItem类型是多方。
 
-**默认情况下，使用了该注解以后，会生成三个表。其中的banner和banner_item表是模型类对应的表模型，还有一张表名称是当前所在模型类对应的名称加上我们的一对多的该属性的名称结合，生成的新表banner_banner_items。默认情况下，这个表有两个属性，是其他两张表的主键构成的。**
+**
+默认情况下，使用了该注解以后，会生成三个表。其中的banner和banner_item表是模型类对应的表模型，还有一张表名称是当前所在模型类对应的名称加上我们的一对多的该属性的名称结合，生成的新表banner_banner_items。默认情况下，这个表有两个属性，是其他两张表的主键构成的。**
 
 ```java
 @Entity
@@ -197,14 +291,35 @@ private Long id;
 
 `strategy = GenerationType.IDENTITY`表示主键自增。
 
+#### @MappedSuperclass 映射的基类
 
+当我们在一个类上标注了该注解以后，表明当前类是一个可以被模型类继承的基类。会拥有当前类的属性，且可以映射到数据库表中。
+
+使用该注解标记一个基类，是为了把某些公共的属性抽取出来，但不想让当前类成为一个模型类。
+
+```java
+
+@Getter
+@Setter
+@MappedSuperclass
+public abstract class BaseEntity {
+    /**
+     * 三个基础字段 且这三个字段 不应该返回给前端 也就是不应该序列化
+     */
+    protected Date createTime;
+    protected Date updateTime;
+    protected Date deleteTime;
+}
+```
 
 ### JPA操作读写数据
+
 定义接口（仓储模式）继承JpaRepository接口，实现数据库的读写操作
+
 ```java
 package com.mao.sleeve.repository.banner;
 
-import com.mao.sleeve.model.Banner;
+import com.mao.sleeve.model_bak.Banner;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -508,7 +623,25 @@ public class Spu {
 }
 ```
 
+## JPA常用功能
 
+### JPA实现分页
+
+我们实现分页，不需要像使用`mybatis`一样，需要使用分页插件`pageHelper`。在`spring data`里面内置的有分页的实现。
+
+需要使用`PageRequest`类的`of`方法。
+
+**返回给控制层的对象是Page**
+
+```java
+public Page<Spu> getLatestPagingSpu(Integer pageNum,Integer size){
+        // TODO  数据分页 且倒序排列
+        // jpa操作的是模型类，所以我们的字段也要写出属性名的那种形式
+        PageRequest page=PageRequest.of(pageNum,size,Sort.by("createTime").descending());
+        // findAll 该方法是jpa默认提供的
+        return spuRepository.findAll(page);
+        }
+```
 
 
 

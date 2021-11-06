@@ -12,4 +12,9 @@ spring:
       # 表存在的情况下， update 不会删除已存在的表 只会创建还没存在的表
       # DDL 数据定义语言
       ddl-auto: none
-
+  jackson:
+    # 序列化的时候，将驼峰形式 转为 蛇形下划线形式
+    property-naming-strategy: SNAKE_CASE
+    serialization:
+      # 将标准时间格式 转为 时间戳返回给前端 毫秒单位
+      WRITE_DATES_AS_TIMESTAMPS: true
