@@ -1,10 +1,12 @@
 # JPA框架
 
+
+
 ## BO,VO,DTO,PO,POJO的区别
 
 **BO：**business object 业务对象
 
-> 业务对象主要作用是把业务逻辑封装为一个对象。这个对象可以包括一个或多个其它的对象。
+>业务对象主要作用是把业务逻辑封装为一个对象。这个对象可以包括一个或多个其它的对象。
 >
 >比如一个简历，有教育经历、工作经历、社会关系等等。我们可以把教育经历对应一个PO，工作经历对应一个PO，社会关系对应一个PO。
 >
@@ -44,9 +46,9 @@
 
 1. 用在需要跨进程或远程传输时，它不应该包含业务逻辑。
 
-2.
+2. 比如一张表有100个字段，那么对应的PO就有100个属性（大多数情况下，DTO内的数据来自多个表）。但view层只需显示10个字段，没有必要把整个PO对象传递到client，这时我们就可以用只有这10个属性的DTO来传输数据到client，这样也不会暴露server端表结构。到达客户端以后，如果用这个对象来对应界面显示，那此时它的身份就转为VO。
 
-比如一张表有100个字段，那么对应的PO就有100个属性（大多数情况下，DTO内的数据来自多个表）。但view层只需显示10个字段，没有必要把整个PO对象传递到client，这时我们就可以用只有这10个属性的DTO来传输数据到client，这样也不会暴露server端表结构。到达客户端以后，如果用这个对象来对应界面显示，那此时它的身份就转为VO。
+
 
 ****
 
@@ -88,11 +90,17 @@
 
 ## 常用注解
 
+
+
 ### 实体类注解
+
+
 
 #### 实体注解 @Entity
 
 使用 `@Entity`注解标识在一个模型类（也可以说是实体类bean）上，表明当前类是一个数据库模型类了。
+
+
 
 #### 主键 @Id
 
@@ -154,16 +162,21 @@ public class Banner {
 
 ```
 
+
+
 #### @Transient 忽略属性
 
 使用该注解标记的属性，在创建表的时候，会忽略该属性，不和表的字段进行对应。也就是说模型类中有该属性，但是生成的表中不会有该字段。
+
+
+
+
 
 #### JSON序列化 @JsonIgnore 忽略该属性
 
 在进行json序列化返回给前端数据的时候，如果某些属性我们不想返回给前端，那么在序列化的时候，我们需要使用该注解@JsonIgnore标记在不被序列化的属性上。
 
 ```java
-
 @Getter
 @Setter
 @MappedSuperclass
@@ -181,14 +194,21 @@ public abstract class BaseEntity {
 }
 ```
 
+
+
+
+
+
+
 #### @OneToMany 一对多
 
 **使用该注解标记的属性，也叫做导航属性。**通过当前所在的模型类可以找到这个关联的多方的数据。
 
+
+
 该注解用来生成一对多的关系。一个banner对应多个bannerItem。表示两个表之间的关系是一对多。当前所在模型是一，标记的BannerItem类型是多方。
 
-**
-默认情况下，使用了该注解以后，会生成三个表。其中的banner和banner_item表是模型类对应的表模型，还有一张表名称是当前所在模型类对应的名称加上我们的一对多的该属性的名称结合，生成的新表banner_banner_items。默认情况下，这个表有两个属性，是其他两张表的主键构成的。**
+**默认情况下，使用了该注解以后，会生成三个表。其中的banner和banner_item表是模型类对应的表模型，还有一张表名称是当前所在模型类对应的名称加上我们的一对多的该属性的名称结合，生成的新表banner_banner_items。默认情况下，这个表有两个属性，是其他两张表的主键构成的。**
 
 ```java
 @Entity
@@ -291,14 +311,17 @@ private Long id;
 
 `strategy = GenerationType.IDENTITY`表示主键自增。
 
+
+
 #### @MappedSuperclass 映射的基类
 
 当我们在一个类上标注了该注解以后，表明当前类是一个可以被模型类继承的基类。会拥有当前类的属性，且可以映射到数据库表中。
 
 使用该注解标记一个基类，是为了把某些公共的属性抽取出来，但不想让当前类成为一个模型类。
 
-```java
 
+
+```java
 @Getter
 @Setter
 @MappedSuperclass
@@ -312,8 +335,13 @@ public abstract class BaseEntity {
 }
 ```
 
-### JPA操作读写数据
 
+
+
+
+
+
+### JPA操作读写数据
 定义接口（仓储模式）继承JpaRepository接口，实现数据库的读写操作
 
 ```java
@@ -623,6 +651,8 @@ public class Spu {
 }
 ```
 
+
+
 ## JPA常用功能
 
 ### JPA实现分页
@@ -634,13 +664,13 @@ public class Spu {
 **返回给控制层的对象是Page**
 
 ```java
-public Page<Spu> getLatestPagingSpu(Integer pageNum,Integer size){
+public Page<Spu> getLatestPagingSpu(Integer pageNum, Integer size) {
         // TODO  数据分页 且倒序排列
         // jpa操作的是模型类，所以我们的字段也要写出属性名的那种形式
-        PageRequest page=PageRequest.of(pageNum,size,Sort.by("createTime").descending());
+        PageRequest page = PageRequest.of(pageNum, size, Sort.by("createTime").descending());
         // findAll 该方法是jpa默认提供的
         return spuRepository.findAll(page);
-        }
+    }
 ```
 
 

@@ -29,4 +29,15 @@ public interface SpuService {
      * @return
      */
     Page<Spu> getLatestPagingSpu(Integer pageNum, Integer size);
+
+    /**
+     * 根据分类id获取该分类下的所有spu
+     *
+     * @param categoryId 分类id
+     * @param isRoot 是否是一级分类
+     * @param pageNum 当前页
+     * @param size 每页数量
+     * @return
+     */
+    Page<Spu> getPagingSpuByCategoryId(Long categoryId, Boolean isRoot, Integer pageNum, Integer size);
 }

@@ -37,4 +37,14 @@ public class SpuServiceImpl implements SpuService {
         // findAll 该方法是jpa默认提供的
         return spuRepository.findAll(page);
     }
+
+    @Override
+    public Page<Spu> getPagingSpuByCategoryId(Long categoryId, Boolean isRoot, Integer pageNum, Integer size) {
+        PageRequest page = PageRequest.of(pageNum, size);
+        if (Boolean.TRUE.equals(isRoot)) {
+            // 一级分类
+            return spuRepository.findByRootCategoryIdOrderByCreateTimeDesc(categoryId, page);
+        }
+        return spuRepository.findByCategoryIdOrderByCreateTimeDesc(categoryId, page);
+    }
 }

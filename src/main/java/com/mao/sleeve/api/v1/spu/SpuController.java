@@ -4,7 +4,6 @@ import com.mao.sleeve.bo.PageCounter;
 import com.mao.sleeve.exception.http.NotFoundException;
 import com.mao.sleeve.model.Spu;
 import com.mao.sleeve.service.spu.SpuService;
-import com.mao.sleeve.utils.BeanUtil;
 import com.mao.sleeve.utils.CommonUtil;
 import com.mao.sleeve.vo.PagingDozer;
 import com.mao.sleeve.vo.SpuSimplifyVO;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.Positive;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @ClassName: SpuController
@@ -42,7 +39,7 @@ public class SpuController {
      * @Positive 参数必须为正数
      */
     @GetMapping("/id/{id}/detail")
-    public Spu getDetail(@PathVariable @Positive Long id) {
+    public Spu getDetail(@PathVariable @Positive(message = "{id.positive}") Long id) {
         Spu spu = spuService.getSpuById(id);
         if (spu == null) {
             // 商品信息不存在异常
@@ -65,6 +62,27 @@ public class SpuController {
         // 将 start和count 转为 pageNum 和 size 的形式
         PageCounter pageCounter = CommonUtil.convertToPageParameter(start, count);
         Page<Spu> page = spuService.getLatestPagingSpu(pageCounter.getPageNum(), pageCounter.getSize());
+        return new PagingDozer<>(page, SpuSimplifyVO.class);
+    }
+
+    /**
+     * 根据分类id 查询分类下的所有spu
+     *
+     * @param id     分类
+     * @param isRoot 是否是一级分类
+     * @param start  起始数据条目
+     * @param count  数据总条数
+     * @return
+     */
+    @GetMapping("/by/category/{id}")
+    public PagingDozer<Spu, SpuSimplifyVO> getSpuListByCategoryId(
+            @PathVariable Long id,
+            @RequestParam(name = "is_root", defaultValue = "false") Boolean isRoot,
+            @RequestParam(name = "start", defaultValue = "0") Integer start,
+            @RequestParam(name = "count", defaultValue = "10") Integer count
+    ) {
+        PageCounter pageCounter = CommonUtil.convertToPageParameter(start, count);
+        Page<Spu> page = spuService.getPagingSpuByCategoryId(id, isRoot, pageCounter.getPageNum(), pageCounter.getSize());
         return new PagingDozer<>(page, SpuSimplifyVO.class);
     }
 }
