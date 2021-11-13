@@ -335,7 +335,14 @@ public abstract class BaseEntity {
 }
 ```
 
-
+#### @Where注解 写查询片段
+该注解可以用在实体类上，JPA进行查询的时候，每次都会在SQL语句后面拼接上这个where查询条件，因为我们的数据都是软删除，可以添加该属性来方便查询数据。
+```java
+@Entity
+@Where(clause = "delete_time is null")
+public class Banner extends BaseEntity {
+}
+```
 
 
 
@@ -673,5 +680,146 @@ public Page<Spu> getLatestPagingSpu(Integer pageNum, Integer size) {
     }
 ```
 
+### JPA实现list或map属性转json
+在java中，并没有专门的json类型来对应数据库的json类型字段。所以，我们可以使用list或者map来
+和数据库中的json类型字段相对应。
+但是这就需要我们书写代码，在当前实体类的属性转json序列化或者数据库字段转实体类的list、map等类型也就是反序列化的时候，自动调用我们实现的代码。
+很明显，JPA肯定已经考虑到这种情况。所以我们只需要书写核心代码，在进行序列化，反序列化的时候JPA会自动调用我们所提供的转换器实现。
+**为了能让JPA自动调用，我们需要实现接口AttributeConverter中的序列化和反序列化的两个方法**，并使用注解`@Converter`标记当前类是转换器类
+```java
+package com.mao.sleeve.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mao.sleeve.exception.http.ServerErrorException;
 
+import java.util.Collections;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
+import java.util.List;
+
+/**
+ * @ClassName: ListToJsonUtil
+ * @Description: 集合类型属性和数据库json字段的相互转换
+ * @Author 毛毛
+ * @CreateDate 2021/11/07/周日 22:14
+ * @Version: v1.0
+ */
+@Converter
+public class ListToJsonUtil implements AttributeConverter<List<?>, String> {
+    @Autowired
+    private ObjectMapper mapper;
+
+    @Override
+    public String convertToDatabaseColumn(List<?> objects) {
+        try {
+            return mapper.writeValueAsString(objects);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new ServerErrorException(9999);
+        }
+    }
+
+    @Override
+    public List<?> convertToEntityAttribute(String s) {
+        try {
+            if (s == null) {
+                // 空字符串 返回值应该是一个空集合，[] 而不是返回 null
+                return Collections.emptyList();
+            }
+            return mapper.readValue(s, List.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new ServerErrorException(9999);
+        }
+    }
+}
+
+```
+**也可以让map类型转json**
+```java
+package com.mao.sleeve.utils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mao.sleeve.exception.http.ServerErrorException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @ClassName: MapToJsonUtil
+ * @Description: 将map转为json 或者json反序列化为map
+ * 我们希望jpa在进行序列化和反序列化的过程中，自动调用这个类的方法进行属性的序列化和数据库字段的反序列化
+ * 只需要实现接口 AttributeConverter<属性的类型，序列化的类型> 将那种属性的类型转为数据库的那种类型
+ * @Author 毛毛
+ * @CreateDate 2021/11/07/周日 21:15
+ * @Version: v1.0
+ */
+@Converter
+public class MapToJsonUtil implements AttributeConverter<Map<String, ?>, String> {
+    @Autowired
+    private ObjectMapper mapper;
+
+    /**
+     * 模型属性 转数据库字段
+     *
+     * @param map 属性值
+     * @return 序列化后的json字符串
+     */
+    @Override
+    public String convertToDatabaseColumn(Map<String, ?> map) {
+        try {
+            return mapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // TODO 记录日志
+            // 9999 服务器未知异常 内部错误
+            throw new ServerErrorException(9999);
+        }
+    }
+
+    /**
+     * 数据库字段 转模型属性
+     *
+     * @param s 数据库中的json数据类型 在java中我们只能用字符串来代替
+     * @return 反序列化后的对象 变成对象的具体字段
+     */
+    @Override
+    public Map<String, ?> convertToEntityAttribute(String s) {
+        try {
+            // 反序列化
+            return mapper.readValue(s, HashMap.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new ServerErrorException(9999);
+        }
+    }
+}
+
+```
+**当然，想要当JPA在序列化，反序列化的时候自动调用，要告诉JPA，我们所写的转换器是应用在那个属性上的**。
+所以我们需要在应用我们定义的转换规则的字段上，打上注解`@Convert`。并给转换器属性converter的值赋值为我们所定义的转换器的class。
+```java
+@Entity
+public class Sku extends BaseEntity {
+    /**
+     * 规格 这里是一组规格值 在数据库中是以json的形式存储的
+     * 既然是json，肯定是key:value的形式 我们知道value是任意基本类型
+     * 在数据库中，存储的是一个数组形式的json [{},{},{}]   List<Map<String, ?>>
+     * 单一规格spec {}   Map<String, ?>
+     * 所有规格集合 [{}]  List<?>
+     *
+     * @Convert(converter = MapToJsonUtil.class) 转换器
+     * 对该模型进行序列化或者反序列化的时候，该字段将会进行我们定义好的规则进行转换
+     */
+    @Convert(converter = ListToJsonUtil.class)
+    private List<?> specs;
+}
+```

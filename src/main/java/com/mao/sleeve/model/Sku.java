@@ -1,5 +1,8 @@
 package com.mao.sleeve.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.mao.sleeve.bean.Spec;
+import com.mao.sleeve.utils.GenericAndJsonUtil;
 import com.mao.sleeve.utils.ListToJsonUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +11,7 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +53,9 @@ public class Sku extends BaseEntity {
      * @Convert(converter = MapToJsonUtil.class) 转换器
      * 对该模型进行序列化或者反序列化的时候，该字段将会进行我们定义好的规则进行转换
      */
-    @Convert(converter = ListToJsonUtil.class)
-    private List<?> specs;
+    //@Convert(converter = ListToJsonUtil.class)
+    //private List<?> specs;
+    private String specs;
     /**
      *
      */
@@ -61,4 +66,22 @@ public class Sku extends BaseEntity {
     private Long stock;
     //private Object categoryId;
     //private Object rootCategoryId;
+
+    /**
+     * 说实话，这种方式没有前面的方式好，凑活吧！
+     *
+     * @return
+     */
+    public List<Spec> getSpecs() {
+        if (specs == null) {
+            return Collections.emptyList();
+        }
+        // TODO 就是把List<Spec> 当做我们原类型中的泛型 T 而已  我是不喜欢这种传递类型的方式 需要new一个匿名类
+        return GenericAndJsonUtil.jsonToList(specs, new TypeReference<List<Spec>>() {
+        });
+    }
+
+    public void setSpecs(List<Spec> specs) {
+        this.specs = GenericAndJsonUtil.objectToJson(specs);
+    }
 }
