@@ -16,7 +16,7 @@ import javax.persistence.Id;
 @Entity
 @Setter
 @Getter
-public class SpuDetailImg {
+public class SpuDetailImg extends BaseEntity{
     @Id
     private Long id;
     private String img;

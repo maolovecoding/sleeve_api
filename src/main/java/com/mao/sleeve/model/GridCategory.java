@@ -17,7 +17,7 @@ import javax.persistence.Id;
 @Entity
 @Getter
 @Setter
-public class GridCategory {
+public class GridCategory extends BaseEntity{
     @Id
     private Long id;
     private String title;
