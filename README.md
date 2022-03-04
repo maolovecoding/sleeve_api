@@ -583,7 +583,7 @@ spring提供的校验注解也很多，比如@Email，@Min，@Max，@Range（指
 #### 自定义校验注解
 
 ```java
-package com.mao.sleeve.validators;
+package com.mao.sleeve.dto.validators;
 
 import javax.validation.Payload;
 import java.lang.annotation.*;
@@ -606,6 +606,7 @@ public @interface PasswordEqual {
      * @return
      */
     Class<?>[] groups() default {};
+
     /**
      * 自定义校验注解的模板方法
      * @return
@@ -614,12 +615,12 @@ public @interface PasswordEqual {
 }
 
 
-package com.mao.sleeve.validators.validator;
+package com.mao.sleeve.dto.validators.validator;
 
-import com.mao.sleeve.validators.anno.PasswordEqual;
+        import com.mao.sleeve.validators.anno.PasswordEqual;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+        import javax.validation.ConstraintValidator;
+        import javax.validation.ConstraintValidatorContext;
 
 /**
  * @ClassName: PasswordValidator

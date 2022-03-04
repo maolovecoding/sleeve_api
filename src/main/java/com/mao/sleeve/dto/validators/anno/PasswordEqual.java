@@ -1,6 +1,6 @@
-package com.mao.sleeve.validators.anno;
+package com.mao.sleeve.dto.validators.anno;
 
-import com.mao.sleeve.validators.validator.PasswordValidator;
+import com.mao.sleeve.dto.validators.validator.PasswordValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

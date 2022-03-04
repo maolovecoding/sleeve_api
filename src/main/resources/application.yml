@@ -1,6 +1,13 @@
 # 指定我们api的根目录
 sleeve:
   api-package: com.mao.sleeve.api
+wx:
+  # 小程序的appid
+  appid: wx1c6b99ecb9cf8fd0
+  # 小程序 appSecret
+  appSecret: 26cb51001becf36cf542e1831c24c97b
+  # 登录凭证校验
+  code2sessionUrl: https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code
   # 开启多环境
 spring:
   profiles:

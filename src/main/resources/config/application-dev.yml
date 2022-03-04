@@ -14,3 +14,11 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+sleeve:
+  # token配置
+  security:
+    # token加密字符串 盐
+    jwtKey: maomao^_^-_-fanfan
+    # 过期时间 s
+    tokenExpiredIn: 8640000
